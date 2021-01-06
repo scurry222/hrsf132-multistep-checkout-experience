@@ -8,24 +8,28 @@ class App extends React.Component {
 
     this.toggleCheckout = this.toggleCheckout.bind(this);
     this.nextForm = this.nextForm.bind(this);
-    this.backToHome = this.backToHome.bind(this);
+    this.purchase = this.purchase.bind(this);
     this.resetForm = this.resetForm.bind(this);
+    this.submitHandler = this.submitHandler.bind(this);
   }
 
   toggleCheckout() {
+    // e.preventDefault();
     this.setState({
       checkout: !this.state.checkout
     })
   }
 
-  backToHome() {
+  purchase() {
     this.setState({
       form: 1
     })
     this.toggleCheckout();
   }
 
-  nextForm() {
+  nextForm(e) {
+    // e.preventDefault();
+
     this.resetForm();
     this.setState({
       form: this.state.form + 1
@@ -36,61 +40,251 @@ class App extends React.Component {
     Array.from(document.querySelectorAll('input')).forEach(input => input.value = '');
   }
 
+  submitHandler(formInfo, callback) {
+    console.log('we here')
+    axios.post('/submit_form', formInfo)
+    .then(() => callback()),
+    (error) => console.log('error posting form: ', error)
+  }
+
 
   render() {
     const { form, checkout } = this.state;
-    const { nextForm, backToHome, toggleCheckout } = this;
+    const { nextForm, purchase, toggleCheckout, handleInput, handleSubmit } = this;
 
     return (
       <>
         {
           checkout
-            ? <ProcessForms
-              form={form}
-              nextForm={nextForm}
-              backToHome={backToHome}
-            />
-            : <button onClick={() => {
-              toggleCheckout();
-            }}>checkout</button>
+            ? form === 1
+              ? <F1 
+                nextForm={nextForm}
+                submitHandler={this.submitHandler}
+                /> 
+              : form === 2
+              ? <F2 
+                nextForm={nextForm}
+                submitHandler={this.submitHandler}
+                />
+              : form === 3
+              ? <F3 
+                purchase={purchase}
+                submitHandler={this.submitHandler}
+                />
+              : null
+            : <button onClick={(e) => toggleCheckout(e)}>checkout</button>
         }
       </>
     )
   }
 }
 
-const ProcessForms = ({ form, nextForm, backToHome }) =>
-  <>
-    {
-      form === 1
-        ? <form action="/submit_form">
-          <input type="text" name="name" placeholder="Name" />
-          <input type="text" name="email" placeholder="Email" />
-          <input type="text" name="password" placeholder="Password" />
-        </form>
-        : form === 2
-          ? <form action="/submit_form">
-            <input type="text" name="address1" placeholder="Address Line 1" />
-            <input type="text" name="address2" placeholder="Address line 2" />
-            <input type="text" name="city" placeholder="City" />
-            <input type="text" name="state" placeholder="State" />
-            <input type="text" name="zip-code" placeholder="Zip Code" />
-          </form>
-          : form === 3
-            ? <form action="/submit_form">
-              <label>DO NOT ACTUALLY PUT YOUR CARD INFO HERE</label>
-              <input type="text" name="credit-card" placeholder="Credit Card #" />
-              <input type="text" name="exp-date" placeholder="Expiration Date" />
-              <input type="text" name="cvv" placeholder="CVV" />
-              <input type="text" name="billing" placeholder="Billing Zip Code" />
-            </form>
-            : null
+class F1 extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      name: '',
+      email: '',
+      password: '',
     }
-    <button onClick={() =>
-      form === 3 ? backToHome() : nextForm()
-    }>Next</button>
-  </>
+    this.handleInput = this.handleInput.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
+  }
+  handleInput(e) {
+    const { name, value } = e.target;
+    this.setState({
+      [name]: value
+    })
+  }
 
+  handleSubmit(e) {
+    e.preventDefault();
+    const info = this.state;
+    this.props.submitHandler(info, () => {
+      for (let key of Object.keys(info)) {
+        this.setState({
+          [key]: ''
+        })
+      }
+      this.props.nextForm();
+    })
+  }
+
+  render() {
+    const { name, email, password } = this.state;
+    const { handleInput, handleSubmit } = this;
+  
+    return (
+      <form onSubmit={ handleSubmit }>
+        <input 
+          type="text"
+          name="name" 
+          placeholder="Name" 
+          value={ name }
+          onChange={ handleInput }/>
+        <input 
+          type="text"
+          name="email" 
+          placeholder="Email" 
+          value={ email }
+          onChange={ handleInput }/>
+        <input 
+          type="text"
+          name="password" 
+          placeholder="Password" 
+          value={ password }
+          onChange={ handleInput }/>
+          <button>Next</button>
+    </form>
+    )
+  }
+}
+
+class F2 extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      address1: '',
+      address2: '',
+      city: '',
+      state: '',
+      zip: ''
+    }
+    this.handleInput = this.handleInput.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
+
+  }
+  handleInput(e) {
+    const { name, value } = e.target;
+    this.setState({
+      [name]: value
+    })
+  }
+
+  handleSubmit(e) {
+    e.preventDefault();
+    const info = this.state;
+    this.props.submitHandler(info, () => {
+      for (let key of Object.keys(info)) {
+        this.setState({
+          [key]: ''
+        })
+      }
+      this.props.nextForm();
+    })
+  }
+
+  render() {
+    const { address1, address2, city, state, zip } = this.state;
+    const { handleInput, handleSubmit } = this;
+
+    return (
+      <form onSubmit={ handleSubmit }>
+        <input 
+          type="text"
+          name="address1" 
+          placeholder="Address Line 1" 
+          value={ address1 }
+          onChange={ handleInput }/>
+        <input 
+          type="text"
+          name="address2" 
+          placeholder="Address line 2" 
+          value={ address2 }
+          onChange={ handleInput }/>
+        <input 
+          type="text"
+          name="city" 
+          placeholder="City" 
+          value={ city }
+          onChange={ handleInput }/>
+        <input 
+          type="text"
+          name="state" 
+          placeholder="State" 
+          value={ state }
+          onChange={ handleInput }/>
+        <input 
+          type="text"
+          name="zip" 
+          placeholder="Zip Code" 
+          value={ zip }
+          onChange={ handleInput }/>
+        <button>Next</button>
+      </form>
+    )
+  }
+}
+
+class F3 extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      creditCard: '',
+      exp: '',
+      cvv: '',
+      billing: ''
+    }
+    this.handleInput = this.handleInput.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
+  }
+  handleInput(e) {
+    const { name, value } = e.target;
+    this.setState({
+      [name]: value
+    })
+  }
+
+  handleSubmit(e) {
+    e.preventDefault();
+    const info = this.state;
+    this.props.submitHandler(info, () => {
+      for (let key of Object.keys(info)) {
+        this.setState({
+          [key]: ''
+        })
+      }
+      this.props.purchase();
+    })
+  }
+
+  render() {
+    const { creditCard, exp, cvv, billing } = this.state;
+    const { handleInput, handleSubmit } = this;
+
+
+    return (
+      <form onSubmit={ handleSubmit }>
+        <label>DO NOT ACTUALLY PUT YOUR CARD INFO HERE</label>
+        <input 
+          type="text"
+          name="creditCard" 
+          placeholder="Credit Card #" 
+          value={ creditCard }
+          onChange={ handleInput }/>
+        <input 
+          type="text"
+          name="exp" 
+          placeholder="Expiration Date" 
+          value={ exp }
+          onChange={ handleInput }/>
+        <input 
+          type="text"
+          name="cvv" 
+          placeholder="CVV"
+          value={ cvv }
+          onChange={ handleInput }/>
+        <input 
+          type="text"
+          name="billing" 
+          placeholder="Billing Zip Code" 
+          value={ billing }
+          onChange={ handleInput }/>
+        <button>Purchase</button>
+      </form>
+    )
+  }
+}
 
 ReactDOM.render(
   <App />,
