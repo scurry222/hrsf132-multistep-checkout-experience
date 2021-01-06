@@ -10,18 +10,9 @@ app.use(bodyParser.json());
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-// app.get('/', () => {
-//     console.log('working...')
-// })
-
-// app.post('/upload_json', (req, res) => {
-    
-//     $.ajax({
-//         method: 'POST',
-//         url: '/upload_json',
-//         data: req.body,
-//         success: res.send()
-//     })
-// })
+app.post('/submit_form', (req, res) => {
+    console.log(req.body);
+    res.send();
+})
 
 app.listen(PORT, () => console.log(`server is listening at localhost:${PORT}!`))
